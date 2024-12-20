@@ -38,4 +38,4 @@ jobs:
 
     # Step 6: Sync the `dist` directory to S3
     - name: Sync dist to S3
-      run: aws s3 sync ./dist s3://elpriser.bellyboys.dk/ --delete
+      run: aws s3 sync ./dist s3://elpriser.dasoji.net/ --delete
