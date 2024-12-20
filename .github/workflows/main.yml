@@ -1,0 +1,41 @@
+name: Build and Deploy to S3
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Check out the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Node.js environment
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'  # Use your preferred Node.js version
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: npm install
+
+    # Step 4: Build the project
+    - name: Build the project
+      run: npm run build
+
+    # Step 5: Configure AWS CLI
+    - name: Configure AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # Change to your preferred AWS region
+
+    # Step 6: Sync the `dist` directory to S3
+    - name: Sync dist to S3
+      run: aws s3 sync ./dist s3://elpriser.bellyboys.dk/ --delete
