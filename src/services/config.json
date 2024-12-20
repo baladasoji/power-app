@@ -1,0 +1,14 @@
+{
+    "BASE_URL":"https://api.energidataservice.dk/dataset/Elspotprices",
+    "radius_vinter_tariff" : {
+        "lavlast" :12.20,
+        "hojlast": 36.61,
+        "spidslast": 109.85
+      },
+      "radius_sommer_tariff" : {
+        "lavlast" :12.20,
+        "hojlast": 18.31,
+        "spidslast": 47.60
+      }
+    
+}
