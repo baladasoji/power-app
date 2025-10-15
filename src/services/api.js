@@ -1,43 +1,49 @@
-
 import configData from './config.json'
 
-const baseurl= configData.BASE_URL
+const baseurl = "https://api.energidataservice.dk/dataset/DayAheadPrices"
 const radius_sommer_tariff = configData.radius_sommer_tariff
 const radius_vinter_tariff = configData.radius_vinter_tariff
 
+const createFilterUrl = (startDate, endDate = null) => {
+  const filter = encodeURIComponent(JSON.stringify({
+    PriceArea: ["DK2"]
+  }))
+  let url = `${baseurl}?offset=0&limit=100&filter=${filter}&columns=TimeDK,DayAheadPriceDKK&start=${startDate}&sort=TimeUTC%20desc`
+  if (endDate) {
+    url += `&end=${endDate}`
+  }
+  return url
+}
+
 export const getFuturePrices = () => {
-  var todayDate = new Date().toISOString().slice(0, 10);
-  return fetch (baseurl+"?filter={%22PriceArea%22:[%22DK2%22]}&columns=HourDK,SpotPriceDKK&start="+todayDate)
-        .then (data=>data.json())
-        .then (data=>updateCharges(data))
+  const todayDate = new Date().toISOString().slice(0, 10)
+  return fetch(createFilterUrl(todayDate))
+    .then(data => data.json())
+    .then(data => updateCharges(data))
 }
 
 export const getTomorrowsPrices = () => {
-  const today = new Date();
-  const tomorrow  = new Date();
-  const dayaftertomorrow = new Date();
-  tomorrow.setDate(today.getDate()+1);
-  dayaftertomorrow.setDate(today.getDate()+2);
-  //var todayDate = today.toISOString().slice(0, 10);
-  var tomorrowDate = tomorrow.toISOString().slice(0, 10);
-  var dayAfterTomorrowDate = dayaftertomorrow.toISOString().slice(0, 10);
-  return fetch (baseurl+"?filter={%22PriceArea%22:[%22DK2%22]}&columns=HourDK,SpotPriceDKK&start="+tomorrowDate+"&end="+dayAfterTomorrowDate)
-        .then (data=>data.json())
-        .then (data=>updateCharges(data))
-}
-export const getTodaysPrices = () => {
-  const today = new Date();
-  const tomorrow  = new Date();
-  const dayaftertomorrow = new Date();
-  tomorrow.setDate(today.getDate()+1);
-  dayaftertomorrow.setDate(today.getDate()+2);
-  var todayDate = today.toISOString().slice(0, 10);
-  var tomorrowDate = tomorrow.toISOString().slice(0, 10);
-  return fetch ("https://api.energidataservice.dk/dataset/Elspotprices?filter={%22PriceArea%22:[%22DK2%22]}&columns=HourDK,SpotPriceDKK&start="+todayDate+"&end="+tomorrowDate)
-        .then (data=>data.json())
-        .then (data=>updateCharges(data))
+  const today = new Date()
+  const tomorrow = new Date()
+  const dayaftertomorrow = new Date()
+  tomorrow.setDate(today.getDate() + 1)
+  dayaftertomorrow.setDate(today.getDate() + 2)
+  const tomorrowDate = tomorrow.toISOString().slice(0, 10)
+  const dayAfterTomorrowDate = dayaftertomorrow.toISOString().slice(0, 10)
+  return fetch(createFilterUrl(tomorrowDate, dayAfterTomorrowDate))
+    .then(data => data.json())
+    .then(data => updateCharges(data))
 }
 
+// Original function
+export const getTodaysPrices = () => {
+  const todayDate = new Date().toISOString().slice(0, 10)
+  return fetch(createFilterUrl(todayDate))
+    .then(data => data.json())
+    .then(data => updateCharges(data))
+}
+
+// Test version using local data
 
 const get_radius_tariff = (dt) => {
   
@@ -80,18 +86,23 @@ const getElAfgift= ()=>{
 }
 
 
+
 const updateCharges =(data) => {
   const elafgift = getElAfgift();
-  data.records = data.records.reverse();
-  data.records.forEach ( e=> { 
+  data.recs = data.records.reverse();
+  data.recs.forEach ( e=> { 
+    console.log(e)
     e.elafgift=elafgift 
-    e.SpotPriceOre=e.SpotPriceDKK/10;
-    const dt = new Date(e.HourDK)
+    e.SpotPriceOre=e.DayAheadPriceDKK/10;
+    const dt = new Date(e.TimeDK);
+    const hourKey = dt.toISOString().slice(0, 13);
     e.RadiusTarrif = radiustarrif[dt.getHours()]
     e.dow =weekdays[dt.getDay()]
     e.hod = dt.getHours()
-    e.label = e.dow+ ' '+e.hod+':00'
+    e.mins = dt.getMinutes().toString().padStart(2, '0')
+    e.label = `${e.dow} ${e.hod}:${e.mins}`
     e.TotalPrice = e.elafgift + e.SpotPriceOre + e.RadiusTarrif
   })
   return data;
 }
+
