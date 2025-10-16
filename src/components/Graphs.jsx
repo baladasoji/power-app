@@ -83,10 +83,10 @@ export const PriceCardGraph = ({prices}) => {
         flexDirection: 'column',
         gap: 1
       }}>
-        <PriceStats prices={prices} />
+        {/* <PriceStats prices={prices} /> */}
         <Box sx={{ 
           width: '100%', 
-          height: isMobile ? '500px' : '700px',
+          height: isMobile ? '700px' : '900px',
           position: 'relative'
         }}>
           <ResponsiveContainer>
