@@ -7,7 +7,6 @@ import {WaitForData} from '../components/RenderUtils';
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
@@ -106,7 +105,8 @@ const ElPricesPage = () => {
         justifyContent: 'space-between', 
         alignItems: 'center',
         borderBottom: 1, 
-        borderColor: 'divider' 
+        borderColor: 'divider',
+        flexWrap: 'nowrap'
       }}>
         <Tabs value={value} onChange={handleChange} aria-label="price period tabs">
           <Tab 
@@ -120,10 +120,13 @@ const ElPricesPage = () => {
             {...a11yProps(1)}
           />
         </Tabs>
-        <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-          <Typography variant="caption" sx={{ color: '#888', mr: 1 }}>
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </Typography>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mr: 1,
+          minWidth: 'fit-content',
+          gap: 0.5
+        }}>
           <Tooltip title="Refresh prices">
             <IconButton 
               onClick={handleRefresh} 
