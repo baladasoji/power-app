@@ -24,8 +24,8 @@ const theme = createTheme({
 const PublicLayout = ({children}) => {
     return (
       <ThemeProvider theme={theme}>
-      <Container maxWidth="lg" >
-        <Box sx={{ bgcolor: 'rgb(30,30,30)', mx:-2}}>
+      <Container maxWidth="lg" sx={{ px: { xs: 0.5, sm: 1, md: 2 } }}>
+        <Box sx={{ bgcolor: 'rgb(30,30,30)', mx: -0.5 }}>
              <PublicAppBar/> 
              {children}
         </Box>

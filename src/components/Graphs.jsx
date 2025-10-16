@@ -1,96 +1,169 @@
 import React from 'react';
-import {Alert } from '@mui/material'
+import { Alert, useTheme, useMediaQuery, Box, Grid } from '@mui/material';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
   Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
+  ResponsiveContainer,
+  LabelList
+} from 'recharts';
+import { Paper, Typography } from '@mui/material';
 
-export const PriceCardGraph = ({prices}) => {
-      if (prices.length >0) 
-      {
-        return ( <PriceChart rows={prices}/>  );
-      }
-      else
-      {
-        return (
-        <Alert severity="warning" onClose={() => {}}>Next day prices are only available after 13:00 !</Alert>
-        );
-      }
-}
+const PriceStats = ({ prices }) => {
+  const stats = React.useMemo(() => {
+    if (!prices?.length) return {};
+    
+    const totalPrices = prices.map(p => p.TotalPrice);
+    return {
+      min: Math.min(...totalPrices).toFixed(2),
+      max: Math.max(...totalPrices).toFixed(2),
+      cheapestHour: prices.reduce((min, p) => p.TotalPrice < min.TotalPrice ? p : min, prices[0]),
+      peakHours: prices.filter(p => p.isPeakHour).length
+    };
+  }, [prices]);
 
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ChartDataLabels,
-  Title,
-  Tooltip,
-  Legend
-);
-
-export const options = {
-  responsive: true,
-  maintainAspectRatio: true,
-  aspectRatio:0.25,
-  indexAxis: 'y',
-   scales: {
-            x: {
-                stacked: false,
-                suggestedMin: 10,
-                suggestedMax: 300
-            },
-            y: {
-                stacked: true,
-            }
-        },
-  plugins: {
-    legend: {
-      position: 'top',
-    },
-    title: {
-      display: true,
-      text: 'Øre/KWH',
-    },
-    datalabels: {
-      anchor: 'end',
-      offset:-20,
-      align: 'end',
-      color: 'azure',
-      formatter: Math.round,
-      font: {
-          size: 9,
-      }
-    }
-  }
+  return (
+    <Paper elevation={1} sx={{ p: 2, mb: 2, bgcolor: 'rgba(255,255,255,0.05)' }}>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="subtitle2" color="#888">Price Range</Typography>
+          <Typography variant="body2" color="#ccc">
+            {stats.min} - {stats.max} øre
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="subtitle2" color="#888">Best Time to Use</Typography>
+          <Typography variant="body2" color="#ccc">
+            {stats.cheapestHour?.label || 'N/A'}
+          </Typography>
+        </Grid>
+      </Grid>
+    </Paper>
+  );
 };
 
-function PriceChart({rows}) {
-  const labels = rows.map(r => r.label) 
+const CustomBarLabel = (props) => {
+  const { x, y, width, height, value } = props;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  return (
+    <text
+      x={x + width + 5}
+      y={y + height / 2}
+      fill="#fff"
+      fontSize={isMobile ? 10 : 12}
+      textAnchor="start"
+      dominantBaseline="middle"
+    >
+      {value.toFixed(0)}
+    </text>
+  );
+};
 
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: 'Raw',
-        data: rows.map( r => r.SpotPriceOre ),
-        backgroundColor: 'rgba(250, 250, 1, 0.7)',
-        borderRadius : 15
-      },
-      {
-        label: 'Total',
-        data: rows.map( r => r.TotalPrice ),
-        backgroundColor: 'rgba(250, 100, 1, 0.7)',
-        borderRadius : 15
-      },
-    ],
-  };
-  return <Bar options={options} data={data}/>;
+export const PriceCardGraph = ({prices}) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  if (prices.length > 0) {
+    return (
+      <Box sx={{ 
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1
+      }}>
+        <PriceStats prices={prices} />
+        <Box sx={{ 
+          width: '100%', 
+          height: isMobile ? '500px' : '700px',
+          position: 'relative'
+        }}>
+          <ResponsiveContainer>
+            <BarChart
+              layout="vertical"
+              data={prices}
+              margin={isMobile ? 
+                { top: 20, right: 60, left: 30, bottom: 5 } : 
+                { top: 20, right: 80, left: 50, bottom: 5 }
+              }
+              barSize={isMobile ? 28 : 38}
+              barGap={0}
+            >
+              <XAxis 
+                type="number" 
+                domain={[0, 'auto']}
+                tickCount={isMobile ? 4 : 8}
+                fontSize={isMobile ? 11 : 13}
+                tick={{ fill: '#fff' }}
+                axisLine={{ stroke: '#333' }}
+                tickLine={{ stroke: '#333' }}
+              />
+              <YAxis 
+                dataKey="label" 
+                type="category" 
+                width={isMobile ? 60 : 85}
+                scale="band"
+                tickMargin={2}
+                fontSize={isMobile ? 11 : 14}
+                axisLine={{ stroke: '#333' }}
+                tickLine={{ stroke: '#333' }}
+                tick={({ x, y, payload }) => (
+                  <g transform={`translate(${x},${y})`}>
+                    <text 
+                      x={0} 
+                      y={0} 
+                      dy={4} 
+                      fill="#fff"
+                      fontSize={isMobile ? 11 : 14}
+                      fontWeight="500"
+                      textAnchor="end"
+                    >
+                      {payload.value}
+                    </text>
+                  </g>
+                )}
+              />
+              <Legend 
+                verticalAlign="top" 
+                height={isMobile ? 25 : 30}
+                fontSize={isMobile ? 11 : 14}
+                formatter={(value) => (
+                  <span style={{ 
+                    color: '#fff', 
+                    fontSize: isMobile ? 11 : 14,
+                    paddingLeft: isMobile ? 0 : 10
+                  }}>
+                    {value}
+                  </span>
+                )}
+              />
+              <Bar
+                dataKey="TotalPrice"
+                name="Total Price"
+                fill="rgba(130, 202, 157, 0.9)"
+                radius={[0, 4, 4, 0]}
+              >
+                <LabelList content={<CustomBarLabel />} position="right" />
+              </Bar>
+              <Bar
+                dataKey="SpotPriceOre"
+                name="Raw Price"
+                fill="rgba(136, 132, 216, 0.9)"
+                radius={[0, 4, 4, 0]}
+              >
+                <LabelList content={<CustomBarLabel />} position="right" />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+      </Box>
+    );
+  } else {
+    return (
+      <Alert severity="warning">Next day prices are only available after 13:00!</Alert>
+    );
+  }
 }
