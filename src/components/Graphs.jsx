@@ -12,6 +12,8 @@ import {
 import { Paper, Typography } from '@mui/material';
 
 const PriceStats = ({ prices }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const stats = React.useMemo(() => {
     if (!prices?.length) return {};
     
@@ -25,21 +27,27 @@ const PriceStats = ({ prices }) => {
   }, [prices]);
 
   return (
-    <Paper elevation={1} sx={{ p: 2, mb: 2, bgcolor: 'rgba(255,255,255,0.05)' }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6}>
-          <Typography variant="subtitle2" color="#888">Price Range</Typography>
+    <Paper elevation={1} sx={{ p: isMobile ? 1 : 2, mb: 1, bgcolor: 'rgba(255,255,255,0.05)' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: isMobile ? 'row' : 'column',
+        gap: isMobile ? 2 : 1,
+        alignItems: isMobile ? 'center' : 'flex-start',
+        justifyContent: 'space-between'
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="subtitle2" color="#888">Price Range:</Typography>
           <Typography variant="body2" color="#ccc">
             {stats.min} - {stats.max} øre
           </Typography>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Typography variant="subtitle2" color="#888">Best Time to Use</Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="subtitle2" color="#888">Best Time:</Typography>
           <Typography variant="body2" color="#ccc">
             {stats.cheapestHour?.label || 'N/A'}
           </Typography>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Paper>
   );
 };
