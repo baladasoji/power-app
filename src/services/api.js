@@ -122,7 +122,7 @@ const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frida
 // A method to get electricity tariff
 // The tariff is 80 after 1 July 2023 and 1 before that date
 const getElAfgift= ()=>{
-  return 90; // WEF 1 January 2025
+  return 0.8; // WEF 1 January 2026
   // const today = new Date();
   // if(today.getFullYear() > 2023 || (today.getFullYear() === 2023 && today.getMonth() >= 6)){
   //   return 80;
